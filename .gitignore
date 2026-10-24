@@ -1,0 +1,13 @@
+# =============================================================
+# Sprout Lands asset packs (Cup Nooble)
+# License: non-commercial only, NO redistribution of the pack
+# itself. These ZIPs must NOT be included in new commits.
+# They are kept locally for reference only.
+# See ASSETS.md and https://cupnooble.itch.io/sprout-lands-asset-pack
+# =============================================================
+Sprout Lands - Sprites - Basic pack.zip
+Sprout Sorry pack.zip
+*.zip
+
+# Extracted Sprout Lands assets must also stay out of the repo
+public/assets/sprout-lands/
