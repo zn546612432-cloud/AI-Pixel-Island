@@ -31,7 +31,8 @@ export const FRAME_COLS = {
   water: 4, // Water.png 64×16
 } as const;
 
-/** 散布装饰瓦片（草地表，底色与填充 #c0d470 一致，已验证零接缝） */
+/** 散布装饰瓦片（草地表，底色与填充 #c0d470 一致，已验证零接缝。
+ *  只用细小的草芽与小花——大块浅斑(3,5)/(4,5)在路口处观感突兀，已剔除 */
 export const SCATTER_TILES: ReadonlyArray<{ col: number; row: number }> = [
   { col: 0, row: 5 }, { col: 0, row: 5 }, { col: 0, row: 5 },
   { col: 1, row: 5 }, { col: 1, row: 5 },
@@ -41,8 +42,6 @@ export const SCATTER_TILES: ReadonlyArray<{ col: number; row: number }> = [
   { col: 2, row: 6 },
   { col: 5, row: 5 }, { col: 5, row: 5 },
   { col: 5, row: 6 },
-  { col: 3, row: 5 },
-  { col: 4, row: 5 },
 ];
 
 export const SCATTER_PROBABILITY = 0.085;

@@ -64,7 +64,8 @@ export function buildMap(scene: Phaser.Scene): MapLayers {
   makeCroppedTextures(scene);
 
   const waterCells = cellsOf('~');
-  const grassCells = cellsOf('g');
+  const landCells = cellsOf('g');
+  for (const key of cellsOf('d')) landCells.add(key);
   const dirtCells = cellsOf('d');
 
   // Layer 0：水面（动画，由场景每 250ms 调 updateWater）
@@ -80,13 +81,14 @@ export function buildMap(scene: Phaser.Scene): MapLayers {
   };
   updateWater(0);
 
-  // Layer 2：浅绿草地（九宫 blob）
+  // Layer 2：浅绿草地 —— 底层铺满所有陆地（g 与 d），
+  // 这样泥土瓦片的透明圆角边缘透出的是草地而不是画布底色（避免"水沟"）
   const grassRT = scene.add.renderTexture(0, 0, MAP_W, MAP_H).setOrigin(0, 0).setDepth(1);
-  const isGrass = (x: number, y: number) => grassCells.has(cellKey(x, y));
-  for (const key of grassCells) {
+  const isLand = (x: number, y: number) => landCells.has(cellKey(x, y));
+  for (const key of landCells) {
     const x = key % COLS;
     const y = Math.floor(key / COLS);
-    const { col, row } = pickBlobTile(neighborMask(isGrass, x, y));
+    const { col, row } = pickBlobTile(neighborMask(isLand, x, y));
     grassRT.stamp('grass', row * FRAME_COLS.grass + col, x * TILE, y * TILE);
   }
 
@@ -104,9 +106,11 @@ export function buildMap(scene: Phaser.Scene): MapLayers {
   const scatterRT = scene.add.renderTexture(0, 0, MAP_W, MAP_H).setOrigin(0, 0).setDepth(3);
   const occupied = occupiedCells();
   const rng = mulberry32(SCATTER_SEED);
+  const isPlainGrass = (x: number, y: number) =>
+    landCells.has(cellKey(x, y)) && !dirtCells.has(cellKey(x, y));
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      if (!isGrass(x, y) || occupied.has(cellKey(x, y))) continue;
+      if (!isPlainGrass(x, y) || occupied.has(cellKey(x, y))) continue;
       if (rng() >= SCATTER_PROBABILITY) continue;
       const pick = SCATTER_TILES[Math.floor(rng() * SCATTER_TILES.length)];
       scatterRT.stamp('grass', pick.row * FRAME_COLS.grass + pick.col, x * TILE, y * TILE);
