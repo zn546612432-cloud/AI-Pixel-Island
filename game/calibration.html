@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Pixel Island - Sprout Lands 素材标定页</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: #14141e; color: #e8e8f0;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 32px 0 8px; color: #ffd9ec; }
+  .sub { color: #9a9ab0; font-size: 13px; margin-bottom: 4px; }
+  .note {
+    background: #2a2333; border-left: 4px solid #ff7ac8;
+    padding: 10px 14px; border-radius: 6px; font-size: 13px;
+    max-width: 900px; line-height: 1.7;
+  }
+  canvas {
+    image-rendering: pixelated;
+    border: 1px solid #3a3a50; border-radius: 4px;
+    background:
+      repeating-conic-gradient(#1c1c2a 0% 25%, #23233a 0% 50%) 0 0 / 24px 24px;
+    max-width: 100%;
+  }
+  .credit { margin-top: 48px; color: #9a9ab0; font-size: 12px; line-height: 1.8; }
+  .legend { font-size: 12px; color: #b8b8cc; margin: 6px 0 10px; }
+  .legend b { color: #ffd9ec; }
+</style>
+</head>
+<body>
+  <h1>Sprout Lands 素材标定页</h1>
+  <div class="sub">AI-Pixel-Island · 第一阶段素材分析 · 每格 16×16px · 坐标格式 (列,行)，从 0 开始</div>
+
+  <p class="note">
+    本页用于确认画风与瓦片拼接效果。<b>红线 = 16px 网格</b>，每格左上角标注 (列,行)。
+    角色精灵图按 48×48 大帧编号（帧号 = 行×4 + 列）。
+    底部「小岛拼接演示」用草地团块 + 水面动画 + 耕地 + 角色实时渲染，确认无误后再正式铺地图。
+    <br>⚠️ 授权提醒：Sprout Lands © Cup Nooble，仅限非商业用途，须署名，素材本身不得再分发。本页与素材文件仅限本地使用。
+  </p>
+
+  <h2>① 草地表 Grass.png（176×112 = 11×7 格）</h2>
+  <div class="legend">
+    <b>(0,0)~(2,2)</b> 3×3 圆角草团（九宫：四角/四边/中心填充） ·
+    <b>(3,0)~(3,2)</b> 竖条（上/中/下） · <b>(0,3)~(2,3)</b> 横条（左/中/右） ·
+    <b>(3,3)</b> 独立圆团 · <b>(4,0)~(7,3)</b> 带装饰点的大草团 ·
+    <b>(8,0)~(10,4)</b> 深绿描边过渡砖 · <b>第 5~6 行</b> 纯草填充变体与装饰（灌木/小花/浅色斑块）
+  </div>
+  <canvas id="cv-grass"></canvas>
+
+  <h2>② 耕地表 Tilled_Dirt_v2.png（176×112 = 11×7 格）</h2>
+  <div class="legend">
+    <b>(0,0)~(2,2)</b> 3×3 土地团块 · <b>(3,0)~(3,2)</b> 竖条 · <b>(0,3)~(2,3)</b> 横条 ·
+    <b>(3,3)</b> 独立圆块 · <b>(4,0)~(7,3)</b> 中空环形田 · <b>(8,0)~(10,3)</b> 波浪过渡砖 ·
+    <b>(3,5)~(4,6)</b> 长草的田块（未耕作状态）
+  </div>
+  <canvas id="cv-tilled"></canvas>
+
+  <h2>③ 水面 Water.png（64×16 = 4 帧动画）</h2>
+  <div class="legend">4 帧循环水面动画，第 <b>0~3</b> 帧，推荐 250ms/帧</div>
+  <canvas id="cv-water"></canvas>
+
+  <h2>④ 角色表 Basic Charakter Spritesheet.png（192×192 = 4×4 大帧，每帧 48×48）</h2>
+  <div class="legend">帧号 = 行×4+列 · <b>行 0 朝下 / 行 1 朝上 / 行 2 朝左 / 行 3 朝右</b>，每行 4 帧走路循环</div>
+  <canvas id="cv-char"></canvas>
+
+  <h2>⑤ 山丘悬崖 Hills.png（176×144 = 11×9 格）</h2>
+  <div class="legend">草皮覆盖的土色悬崖（三层高），用于做岛的地形高差 · (8,5)/(8,6) 小灌木 · (9,5)~(10,6) 石阶</div>
+  <canvas id="cv-hills"></canvas>
+
+  <h2>⑥ 小路 Pieces Objects/Paths.png（64×64 = 4×4 格）</h2>
+  <div class="legend">木板路斜向与转角装饰件（非九宫格 bitmask 路，需人工挑选拼接）</div>
+  <canvas id="cv-paths"></canvas>
+
+  <h2>⑦ 团块拼接演示（静态语法检查）</h2>
+  <div class="legend">左→右：独立圆团 · 横条 · 竖条 · 3×3 团块 · 5×3 大块（角/边/填充复用）</div>
+  <canvas id="cv-blobdemo"></canvas>
+
+  <h2>⑧ 小岛拼接演示（实时动画）</h2>
+  <div class="legend">水面 4 帧循环 + 草地岛 + 耕地 3×3 + 角色（待机朝下）——确认画风与接缝效果</div>
+  <canvas id="cv-island"></canvas>
+
+  <div class="credit">
+    Assets - From: Sprout Lands - By: Cup Nooble<br>
+    Sprout Lands asset pack by Cup Nooble (cupnooble.itch.io) — 非商业用途，已按要求署名。 redistribution of the asset pack itself is not permitted.
+  </div>
+
+<script>
+const A = 'assets/sprout-lands/';
+const T = 16; // tile size
+
+function load(url) {
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error(url));
+    im.src = url;
+  });
+}
+
+// 在 canvas 上绘制精灵图 + 16px 红色网格 + (列,行) 标注
+function drawSheet(cv, img, zoom, cell, label) {
+  const cols = Math.floor(img.width / cell), rows = Math.floor(img.height / cell);
+  cv.width = img.width * zoom; cv.height = img.height * zoom;
+  const g = cv.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.drawImage(img, 0, 0, cv.width, cv.height);
+  g.strokeStyle = 'rgba(255,64,64,.85)'; g.lineWidth = 1;
+  for (let c = 0; c <= cols; c++) { g.beginPath(); g.moveTo(c*cell*zoom+.5, 0); g.lineTo(c*cell*zoom+.5, cv.height); g.stroke(); }
+  for (let r = 0; r <= rows; r++) { g.beginPath(); g.moveTo(0, r*cell*zoom+.5); g.lineTo(cv.width, r*cell*zoom+.5); g.stroke(); }
+  g.font = `${Math.max(9, 3*zoom)}px monospace`;
+  g.fillStyle = '#ffe14d';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const t = label ? label(c, r) : `${c},${r}`;
+    if (t) g.fillText(t, c*cell*zoom+2, r*cell*zoom+Math.max(9,3*zoom));
+  }
+}
+
+// 从 sheet 取一个 16px 瓦片画到 g 的 (dx,dy)
+function tile(g, img, cx, cy, dx, dy, size = T) {
+  g.drawImage(img, cx*size, cy*size, size, size, dx*size, dy*size, size, size);
+}
+
+async function main() {
+  const [grass, tilled, water, char, hills, paths] = await Promise.all([
+    load(A+'tilesets/grass.png'), load(A+'tilesets/tilled_dirt.png'),
+    load(A+'tilesets/water.png'), load(A+'characters/character_spritesheet.png'),
+    load(A+'tilesets/hills.png'), load(A+'objects/paths.png'),
+  ]);
+
+  drawSheet(document.getElementById('cv-grass'), grass, 5, T);
+  drawSheet(document.getElementById('cv-tilled'), tilled, 5, T);
+  drawSheet(document.getElementById('cv-water'), water, 8, T, (c) => `帧${c}`);
+  drawSheet(document.getElementById('cv-paths'), paths, 8, T);
+
+  // 角色：48px 大帧，帧号 0~15
+  drawSheet(document.getElementById('cv-char'), char, 4, 48,
+    (c, r) => String(r * 4 + c));
+
+  drawSheet(document.getElementById('cv-hills'), hills, 4, T);
+
+  // ---- 团块拼接演示 ----
+  {
+    const cv = document.getElementById('cv-blobdemo');
+    cv.width = 19 * T * 4; cv.height = 4 * T * 4;
+    const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+    const z = 4;
+    // 独立圆团 (3,3)
+    tile(g, grass, 3,3, 1,1);
+    // 横条 (0..2,3) 长 4：左右端 + 中间复用
+    tile(g, grass, 0,3, 4,1); for (let i=5;i<=7;i++) tile(g, grass, 1,3, i,1); tile(g, grass, 2,3, 8,1);
+    // 竖条 (3,0..2) 高 3
+    tile(g, grass, 3,0, 10,0); tile(g, grass, 3,1, 10,1); tile(g, grass, 3,2, 10,2);
+    // 3×3 团块
+    for (let r=0;r<3;r++) for (let c=0;c<3;c++) tile(g, grass, c,r, 12+c, r);
+    // 5×3 大块：四角+上下边+左右边+中心填充复用
+    const bx=15, by=0, W=5, H=3;
+    for (let r=0;r<H;r++) for (let c=0;c<W;c++) {
+      const sx = c===0?0 : c===W-1?2 : 1;
+      const sy = r===0?0 : r===H-1?2 : 1;
+      tile(g, grass, sx, sy, bx+c, by+r);
+    }
+  }
+
+  // ---- 小岛实时演示 ----
+  const cv = document.getElementById('cv-island');
+  const MAPW = 16, MAPH = 10, z = 4;
+  cv.width = MAPW*T*z; cv.height = MAPH*T*z;
+  const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+
+  // 草地岛范围（含边界）
+  const IX0=3, IY0=2, IX1=12, IY1=7;
+  // 耕地 3×3 位置
+  const DX0=6, DY0=4;
+
+  function frame(t) {
+    const wf = Math.floor(t/250) % 4; // 水面动画帧
+
+    // 1. 全图水面
+    for (let r=0;r<MAPH;r++) for (let c=0;c<MAPW;c++)
+      tile(g, water, wf,0, c,r);
+
+    // 2. 草地岛（九宫复用）
+    for (let r=IY0;r<=IY1;r++) for (let c=IX0;c<=IX1;c++) {
+      const sx = c===IX0?0 : c===IX1?2 : 1;
+      const sy = r===IY0?0 : r===IY1?2 : 1;
+      tile(g, grass, sx, sy, c,r);
+    }
+
+    // 3. 耕地 3×3
+    for (let r=0;r<3;r++) for (let c=0;c<3;c++)
+      tile(g, tilled, c, r, DX0+c, DY0+r);
+
+    // 4. 角色：帧0 朝下待机，站在 (10,6)，脚底对齐 (10,6) 格子下沿
+    g.drawImage(char, 0,0, 48,48, 10*T*z-16*z, 7*T*z-40*z, 48*z, 48*z);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+main().catch(e => {
+  document.body.insertAdjacentHTML('afterbegin',
+    `<p class="note">素材加载失败：${e.message}（请通过 Vite 开发服务器访问本页）</p>`);
+});
+</script>
+</body>
+</html>
